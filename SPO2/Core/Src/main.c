@@ -43,7 +43,7 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+//small test
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
