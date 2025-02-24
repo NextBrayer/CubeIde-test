@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "AFE4490.h"
 #include <stdio.h>
+#include<stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,7 +62,8 @@ static void MX_SPI2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+afe44xx_data afe44xx_raw_data;
+bool isInit = 0 ;
 /* USER CODE END 0 */
 
 /**
@@ -99,6 +101,7 @@ int main(void)
   printf("Starting AFE44XX initialization...\r\n");
   AFE44XX_Init();
   printf("AFE44XX initialization complete.\r\n");
+  isInit =1 ;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,7 +114,6 @@ int main(void)
       //printf("Hello World\n\r");
       //uint32_t led_control = AFE44XX_Read(&afe_config, LEDCNTRL);
      // printf("LEDCNTRL Register: 0x%08lX\n", led_control);
-      HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -266,17 +268,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : pwdn_Pin */
-  GPIO_InitStruct.Pin = pwdn_Pin;
+  /*Configure GPIO pins : pwdn_Pin PC8 */
+  GPIO_InitStruct.Pin = pwdn_Pin|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(pwdn_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : drydy_Pin */
-  GPIO_InitStruct.Pin = drydy_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(drydy_GPIO_Port, &GPIO_InitStruct);
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -290,6 +290,14 @@ PUTCHAR_PROTOTYPE
   HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
 
   return ch;
+}
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == GPIO_PIN_8 && isInit) {
+	  get_AFE44XX_Data(&afe44xx_raw_data);
+  } else {
+      __NOP();
+  }
 }
 /* USER CODE END 4 */
 

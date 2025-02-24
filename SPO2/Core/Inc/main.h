@@ -69,8 +69,7 @@ void Error_Handler(void);
 #define LD2_GPIO_Port GPIOA
 #define pwdn_Pin GPIO_PIN_6
 #define pwdn_GPIO_Port GPIOC
-#define drydy_Pin GPIO_PIN_8
-#define drydy_GPIO_Port GPIOC
+#define pwdn_EXTI_IRQn EXTI9_5_IRQn
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14

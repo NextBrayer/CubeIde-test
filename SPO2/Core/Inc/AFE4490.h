@@ -81,9 +81,10 @@ typedef struct {
     int drdy_pin;
 } AFE44XX_Config;
 
+
 // Function prototypes
 void AFE44XX_Init();
-bool AFE44XX_GetData( afe44xx_data *afe44xx_raw_data);
+void get_AFE44XX_Data();
 bool AFE44XX_ProcessData( afe44xx_data *afe44xx_raw_data);
 void AFE44XX_TestReadRegisters( uint8_t reg1, uint8_t reg2, uint8_t reg3);
 

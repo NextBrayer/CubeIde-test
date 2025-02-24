@@ -8,8 +8,17 @@
 #include "AFE4490.h"
 #include "main.h" // Ensure GPIO and SPI handles are defined
 #include <stdio.h>
+#include "heart.h"
 
 extern SPI_HandleTypeDef hspi2; // Modify if using a different SPI instance
+
+uint32_t IRtemp;
+uint32_t REDtemp;
+volatile int8_t n_buffer_count;
+uint16_t aun_ir_buffer[100];  // infrared LED sensor data
+uint16_t aun_red_buffer[100]; // red LED sensor data
+
+int dec = 0;
 
 // AFE44XX configuration structure
 void AFE44XX_Write(uint8_t address, uint32_t data) {
@@ -90,6 +99,10 @@ void AFE44XX_Init() {
     printf("Initializing AFE44XX...\r\n");
     AFE44XX_TestReadRegisters( ADCRSTCNT2, LED1CONVEND, LEDCNTRL);
     printf("Initialization complete  .\r\n");
+	 AFE44XX_Write(CONTROL0, 0x000001);
+
+	 // init of hear algorithm:
+	 initStatHRM();
 }
 
 
@@ -112,5 +125,36 @@ void AFE44XX_TestReadRegisters(uint8_t reg1, uint8_t reg2, uint8_t reg3) {
 
 
     printf("Register read test complete.\r\n");
+}
+
+
+void get_AFE44XX_Data(afe44xx_data *afe44xx_raw_data)
+{
+	 IRtemp = AFE44XX_Read(LED1VAL);
+     REDtemp = AFE44XX_Read(LED2VAL);
+
+    // IRtemp = (IRtemp << 10) & 0xFFFFFC00;  // Mask ensures lower 10 bits are 0
+     //afe44xx_raw_data->IR_data = (signed long)(IRtemp >> 10);  // Shift back to original position
+
+     // Shift REDtemp left by 10 bits and mask out the lower 10 bits
+    // REDtemp = (REDtemp << 10) & 0xFFFFFC00;  // Mask ensures lower 10 bits are 0
+     //afe44xx_raw_data->RED_data = (signed long)(REDtemp >> 10);
+    // printf("0x%08lX,0x%08lX\r\n", afe44xx_raw_data->IR_data, afe44xx_raw_data->RED_data );
+
+       IRtemp = (unsigned long)(IRtemp << 10);
+       afe44xx_raw_data->IR_data = (signed long)(IRtemp);
+       afe44xx_raw_data->IR_data = (signed long)((afe44xx_raw_data->IR_data) >> 10);
+       REDtemp = (unsigned long)(REDtemp << 10);
+       afe44xx_raw_data->RED_data = (signed long)(REDtemp);
+     afe44xx_raw_data->RED_data = (signed long)((afe44xx_raw_data->RED_data) >> 10);
+   //  printf("%ld,%ld,%ld,%ld\r\n",  afe44xx_raw_data->IR_data, afe44xx_raw_data->RED_data,IRtemp, REDtemp);
+
+
+     statHRMAlgo(afe44xx_raw_data->RED_data);
+
+
+
+
+
 }
 
